@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth, GoogleAuthProvider } from 'firebase/auth';
 
 // Konfigurasi Firebase resmi project salma-bootcamp
 const firebaseConfig = {
@@ -14,9 +15,11 @@ const firebaseConfig = {
 
 export const isFirebaseConfigured = true;
 
-// Inisialisasi Firebase App & Firestore
+// Inisialisasi Firebase App, Firestore, & Auth
 const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db: Firestore = getFirestore(app);
+const auth: Auth = getAuth(app);
+const googleProvider: GoogleAuthProvider = new GoogleAuthProvider();
 
 // Smart Health Cache agar tidak ada lag navigasi jika database di konsol belum di-klik 'Create'
 let firestoreHealthy: boolean | null = null;
@@ -59,4 +62,5 @@ export async function withFirestoreTimeout<T>(
   });
 }
 
-export { app, db };
+export { app, db, auth, googleProvider };
+

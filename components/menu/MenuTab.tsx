@@ -6,12 +6,17 @@ import { MenuItem } from '@/lib/types';
 import { formatRupiah } from '@/lib/format';
 import { createMenu, updateMenu, deleteMenu } from '@/lib/services/menuService';
 
+import Link from 'next/link';
+import { useAuth } from '@/lib/context/AuthContext';
+
 interface MenuTabProps {
   menus: MenuItem[];
   onRefresh: () => void;
+  isReadOnly?: boolean;
 }
 
-export function MenuTab({ menus, onRefresh }: MenuTabProps) {
+export function MenuTab({ menus, onRefresh, isReadOnly = false }: MenuTabProps) {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
@@ -136,18 +141,36 @@ export function MenuTab({ menus, onRefresh }: MenuTabProps) {
   return (
     <div className="space-y-4">
       {/* Top Action Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">Katalog Menu</h2>
-          <p className="text-xs text-muted-foreground">Kelola harga, stok porsi, & status ketersediaan</p>
+          <h2 className="text-lg font-bold tracking-tight">
+            {isReadOnly ? 'Daftar Menu' : 'Katalog Menu'}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {isReadOnly
+              ? 'Menu katering harian segar dan higienis'
+              : 'Kelola harga, stok porsi, & status ketersediaan'}
+          </p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-sm hover:opacity-95 active:scale-95 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Menu
-        </button>
+
+        {isReadOnly ? (
+          user ? (
+            <Link
+              href="/kelola-menu"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 text-xs font-semibold rounded-xl shadow-2xs transition-all active:scale-95"
+            >
+              <span>Buka Kelola Menu</span>
+            </Link>
+          ) : null
+        ) : (
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-sm hover:opacity-95 active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Menu
+          </button>
+        )}
       </div>
 
       {/* Success Notification */}
@@ -164,7 +187,9 @@ export function MenuTab({ menus, onRefresh }: MenuTabProps) {
           <Utensils className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
           <p className="font-semibold text-sm text-foreground">Belum ada menu tersedia</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Klik tombol &quot;Tambah Menu&quot; di atas untuk mendaftarkan menu harian katering.
+            {isReadOnly
+              ? 'Belum ada menu harian yang dipublikasikan saat ini.'
+              : 'Klik tombol "Tambah Menu" di atas untuk mendaftarkan menu harian katering.'}
           </p>
         </div>
       ) : (
@@ -183,7 +208,11 @@ export function MenuTab({ menus, onRefresh }: MenuTabProps) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className={`font-semibold text-sm ${isHabis || item.tersedia === false ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      <h3
+                        className={`font-semibold text-sm ${
+                          isHabis || item.tersedia === false ? 'text-muted-foreground' : 'text-foreground'
+                        }`}
+                      >
                         {item.nama}
                       </h3>
                       {item.tersedia === false ? (
@@ -219,22 +248,25 @@ export function MenuTab({ menus, onRefresh }: MenuTabProps) {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => openEditModal(item)}
-                      aria-label="Edit Menu"
-                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id, item.nama)}
-                      aria-label="Hapus Menu"
-                      className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {/* Tombol Aksi Edit & Hapus hanya tampil jika BUKAN mode ReadOnly (Kelola Menu) */}
+                  {!isReadOnly && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        aria-label="Edit Menu"
+                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id, item.nama)}
+                        aria-label="Hapus Menu"
+                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

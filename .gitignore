@@ -40,3 +40,8 @@ next-env.d.ts
 
 # local documentation files
 *.docx.md
+*.docx
+
+# netlify
+.netlify/
+
